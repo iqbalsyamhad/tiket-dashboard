@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ### `yarn install` / `npm install`
 
-Install add dependencies
+Install all dependencies
 
 ## Available Scripts
 
