@@ -1,109 +1,176 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Form, Col, Button, ListGroup } from 'react-bootstrap';
-import { ListGroupContainer } from './FormTixElements';
+import React, { useState } from 'react';
+import { Container, Form, Col, Button } from 'react-bootstrap';
+import SelectAirportComponent from '../SelectAirportComponent';
+
+import DatePicker from 'react-datepicker';
+import './react-datepicker.css';
+
+const cabinList = ['ECONOMY', 'BUSINESS', 'FIRST', 'PREMIER'];
 
 const FormTixComponent = () => {
   let [departure, setDeparture] = useState('');
-  let [departureList, setDepartureList] = useState([]);
-  let [showElement, setShowElement] = useState(false);
-  let [clickedList, setClickedList] = useState(false);
+  let [arrival, setArrival] = useState('');
+  let [tglBerangkat, setTglBerangkat] = useState(new Date());
+  let [tglPulang, setTglPulang] = useState(new Date().setDate(new Date().getDate() + 2));
+  let [dewasa, setDewasa] = useState(1);
+  let [anak, setAnak] = useState(1);
+  let [bayi, setBayi] = useState(0);
+  let [cabin, setCabin] = useState(cabinList[0]);
 
-  useEffect(() => {
-    async function fetchMyAPI() {
-      let response = await fetch(`http://api.dreamtour.co/api/v1/tiketcom/flight/airports?city=${departure}&airport=${departure}&country=${departure}`);
-      response = await response.json();
-      setDepartureList(response);
-    }
-
-    if (departure.length > 2) {
-      fetchMyAPI();
-      setShowElement(true);
-    } else {
-      setDepartureList([]);
-      setShowElement(false);
-    }
-  }, [departure]);
-
-  const onBlurHandler = (e) => {
-    if (!e.relatedTarget) {
-      setShowElement(false);
-    }
+  const handleDepartureChange = (value) => {
+    setDeparture(value);
   };
-  console.log(showElement);
+
+  const handleArrivalChange = (value) => {
+    setArrival(value);
+  };
+
+  const renderDayContents = (day, date) => {
+    const tooltipText = `Tooltip for date: ${date}`;
+    var now = date.getDay();
+    var isWeekend = now === 0;
+
+    var d = new Date();
+    var n = d.getMonth();
+
+    let libur = isWeekend ? 'libur' : '';
+
+    if (date.getMonth() > n) libur = libur + ' offset-date';
+
+    return (
+      <span className={libur} title={tooltipText}>
+        {day}
+      </span>
+    );
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const tglBerangkatVal = document.getElementsByName('tglBerangkat')[0].value;
+    const tglPulangVal = document.getElementsByName('tglPulang')[0].value;
+    console.log(
+      departure,
+      arrival,
+      tglBerangkatVal,
+      tglPulangVal,
+      dewasa,
+      anak,
+      bayi,
+      cabin
+    );
+  };
+
   return (
-    <Container>
-      <Form>
+    <Container className="border rounded p-4 mt-3">
+      <Form onSubmit={handleSubmit}>
         <Form.Row>
-          <Form.Group as={Col} controlId="formGridEmail">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              type="text"
+          <Form.Group as={Col} controlId="departureSearch">
+            <Form.Label>Dari</Form.Label>
+            <SelectAirportComponent
               name="departure"
-              value={departure}
-              placeholder="Keberangkatan"
-              onChange={(e) => setDeparture(e.target.value)}
-              onBlur={onBlurHandler}
-              onFocus={(e) => setShowElement(true)}
+              placeholder="Dari"
+              onChange={handleDepartureChange}
+              isDisabled={0}
             />
-            <ListGroupContainer show={showElement ? 1 : 0}>
-              {departureList.data?.airports.length > 0
-                ? departureList.data.airports.map((el) => {
-                    return (
-                      <ListGroup.Item tabIndex="0" className="airports" key={el.airport_code} onClick={(e) => setDeparture(el.airport_name)}>
-                        <strong>{el.airport_name}</strong> <em>{el.airport_code}</em>
-                        <div>
-                          {el.city_name}, {el.country_name}
-                        </div>
-                      </ListGroup.Item>
-                    );
-                  })
-                : false}
-            </ListGroupContainer>
           </Form.Group>
 
-          <Form.Group as={Col} controlId="formGridPassword">
-            <Form.Label>Password</Form.Label>
-            <Form.Control type="password" placeholder="Password" />
+          <Form.Group as={Col} md={6} xs={12} controlId="formGridPassword">
+            <Form.Label>Ke</Form.Label>
+            <SelectAirportComponent
+              name="arrival"
+              placeholder="Ke"
+              onChange={handleArrivalChange}
+              isDisabled={0}
+            />
           </Form.Group>
-        </Form.Row>
-
-        <Form.Group controlId="formGridAddress1">
-          <Form.Label>Address</Form.Label>
-          <Form.Control placeholder="1234 Main St" />
-        </Form.Group>
-
-        <Form.Group controlId="formGridAddress2">
-          <Form.Label>Address 2</Form.Label>
-          <Form.Control placeholder="Apartment, studio, or floor" />
-        </Form.Group>
-
-        <Form.Row>
-          <Form.Group as={Col} controlId="formGridCity">
-            <Form.Label>City</Form.Label>
-            <Form.Control />
+          <Form.Group as={Col} md={6} xs={12} controlId="formGridPassword">
+            <Form.Label>Berangkat</Form.Label>
+            <DatePicker
+              className="form-control"
+              name="tglBerangkat"
+              selected={tglBerangkat}
+              onChange={(date) => setTglBerangkat(date)}
+              minDate={new Date()}
+              monthsShown={2}
+              renderDayContents={renderDayContents}
+              dateFormat="yyyy-MM-dd"
+              popperModifiers={{
+                preventOverflow: {
+                  enabled: true,
+                  escapeWithReference: false,
+                  boundariesElement: 'viewport',
+                },
+              }}
+            />
           </Form.Group>
-
-          <Form.Group as={Col} controlId="formGridState">
-            <Form.Label>State</Form.Label>
-            <Form.Control as="select" defaultValue="Choose...">
-              <option>Choose...</option>
-              <option>...</option>
+          <Form.Group as={Col} md={6} xs={12} controlId="formGridPassword">
+            <Form.Label>Pulang</Form.Label>
+            <DatePicker
+              className="form-control"
+              name="tglPulang"
+              selected={tglPulang}
+              onChange={(date) => setTglPulang(date)}
+              minDate={new Date()}
+              monthsShown={2}
+              renderDayContents={renderDayContents}
+              dateFormat="yyyy-MM-dd"
+              popperModifiers={{
+                preventOverflow: {
+                  enabled: true,
+                  escapeWithReference: false,
+                  boundariesElement: 'viewport',
+                },
+              }}
+            />
+          </Form.Group>
+          <Form.Group as={Col} md={2} xs={4} controlId="formGridPassword">
+            <Form.Label>Dewasa</Form.Label>
+            <Form.Control
+              value={dewasa}
+              name="dewasa"
+              type="number"
+              placeholder="Enter Dewasa"
+              min="0"
+              onChange={(e) => setDewasa(e.target.value)}
+            />
+            <Form.Text muted>Usia 12+</Form.Text>
+          </Form.Group>
+          <Form.Group as={Col} md={2} xs={4} controlId="formGridPassword">
+            <Form.Label>Anak</Form.Label>
+            <Form.Control
+              value={anak}
+              name="anak"
+              type="number"
+              placeholder="Enter Anak"
+              min="0"
+              onChange={(e) => setAnak(e.target.value)}
+            />
+            <Form.Text muted>Usia 2-11</Form.Text>
+          </Form.Group>
+          <Form.Group as={Col} md={2} xs={4} controlId="formGridPassword">
+            <Form.Label>Bayi</Form.Label>
+            <Form.Control
+              value={bayi}
+              name="bayi"
+              type="number"
+              placeholder="Enter Bayi"
+              min="0"
+              onChange={(e) => setBayi(e.target.value)}
+            />
+            <Form.Text muted>Dibawah 2</Form.Text>
+          </Form.Group>
+          <Form.Group as={Col} md={6} xs={12} controlId="formGridPassword">
+            <Form.Label>Kelas Kabin</Form.Label>
+            <Form.Control as="select" onChange={(e) => setCabin(e.target.value)}>
+              {cabinList.map((el, index) => (
+                <option key={index} value={el}>
+                  {el}
+                </option>
+              ))}
             </Form.Control>
           </Form.Group>
-
-          <Form.Group as={Col} controlId="formGridZip">
-            <Form.Label>Zip</Form.Label>
-            <Form.Control />
-          </Form.Group>
         </Form.Row>
-
-        <Form.Group id="formGridCheckbox">
-          <Form.Check type="checkbox" label="Check me out" />
-        </Form.Group>
-
-        <Button variant="primary" type="submit">
-          Submit
-        </Button>
+        <Button type="submit">Cari Penerbangan</Button>
       </Form>
     </Container>
   );
