@@ -1,42 +1,38 @@
 import React, { useState } from 'react';
 import AsyncSelect from 'react-select/async';
-
-let defaultDepartureValue = JSON.parse(`[
-  {
-      "airport_code": "CGK",
-      "airport_name": "Soekarno Hatta",
-      "city_code": "JKTC",
-      "city_name": "Jakarta",
-      "country_name": "Indonesia"
-  },
-  {
-      "airport_code": "HLP",
-      "airport_name": "Halim Perdanakusuma",
-      "city_code": "JKTC",
-      "city_name": "Jakarta",
-      "country_name": "Indonesia"
-  }
-]`);
-
-let defaultArrivalValue = JSON.parse(`[
-  {
-    "airport_code": "JED",
-    "airport_name": "Jeddah",
-    "city_code": "JEDC",
-    "city_name": "Jeddah",
-    "country_name": "Saudi Arabia"
-},
-{
-  "airport_code": "MED",
-  "airport_name": "Madinah",
-  "city_code": "MEDC",
-  "city_name": "Madinah",
-  "country_name": "Saudi Arabia"
-}
-]`);
+import { APIDream } from '../../utils/api';
+import { defaultDepartureValue, defaultArrivalValue } from '../../data/selectDefault';
 
 const SelectAirportComponent = ({ name, placeholder, onChange, isDisabled }) => {
   let [selectedOption, setSelectedOption] = useState('');
+
+  let fetchData = (inputValue, callback) => {
+    if (!inputValue) {
+      callback([]);
+    } else {
+      setTimeout(() => {
+        APIDream.get(
+          `v1/tiketcom/flight/airports?city=${inputValue}&airport=${inputValue}&country=${inputValue}`
+        )
+          .then(({ data }) => {
+            const tempArray = [];
+            data.data.airports.forEach((element) => {
+              tempArray.push({
+                value: element.airport_code,
+                label: element.airport_name,
+                city_code: element.city_code,
+                city_name: element.city_name,
+                country_name: element.country_name,
+              });
+            });
+            callback(tempArray);
+          })
+          .catch((error) => {
+            console.log(error, 'catch the hoop');
+          });
+      }, 1000);
+    }
+  };
 
   const options =
     name === 'departure'
@@ -89,40 +85,6 @@ const SelectAirportComponent = ({ name, placeholder, onChange, isDisabled }) => 
           </div>
         </>
       );
-    }
-  };
-
-  let fetchData = (inputValue, callback) => {
-    if (!inputValue) {
-      callback([]);
-    } else {
-      setTimeout(() => {
-        fetch(
-          `http://api.dreamtour.co/api/v1/tiketcom/flight/airports?city=${inputValue}&airport=${inputValue}&country=${inputValue}`,
-          {
-            method: 'GET',
-          }
-        )
-          .then((resp) => {
-            return resp.json();
-          })
-          .then((data) => {
-            const tempArray = [];
-            data.data.airports.forEach((element) => {
-              tempArray.push({
-                value: element.airport_code,
-                label: element.airport_name,
-                city_code: element.city_code,
-                city_name: element.city_name,
-                country_name: element.country_name,
-              });
-            });
-            callback(tempArray);
-          })
-          .catch((error) => {
-            console.log(error, 'catch the hoop');
-          });
-      }, 1000);
     }
   };
 
